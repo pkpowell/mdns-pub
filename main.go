@@ -98,7 +98,7 @@ func initMDNS() {
 	//cont:
 
 	for _, iface = range ifaces {
-		Infof("iface %#v", iface.Flags.String())
+		Infof("iface %#v", iface)
 
 		if iface.Flags&(1<<uint(4)) != 0 {
 			Infof("found loopback flag %s", iface.Name)
