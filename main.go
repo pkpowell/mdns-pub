@@ -100,10 +100,14 @@ func initMDNS() {
 	for _, iface = range ifaces {
 		Infof("iface %#v", iface)
 
-		if iface.Flags&(1<<uint(4)) != 0 {
+		if iface.Index == 1 {
 			Infof("found loopback flag %s", iface.Name)
 			break //cont
 		}
+		// if iface.Flags&(1<<uint(4)) != 0 {
+		// 	Infof("found loopback flag %s", iface.Name)
+		// 	break //cont
+		// }
 
 		// switch i.Name {
 		// case "lo", "lo0":
