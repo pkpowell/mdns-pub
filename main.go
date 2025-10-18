@@ -96,17 +96,22 @@ func initMDNS() {
 	}
 cont:
 	for _, i = range ifaces {
-		Infof("iface %#v", i)
+		Infof("iface %#v", i.Flags.String())
 
-		switch i.Name {
-		case "lo", "lo0":
-			Infof("found loopback %s", i.Name)
+		if i.Flags&(1<<uint(4)) != 0 {
+			Infof("found loopback flag %s", i.Name)
 			break cont
-		default:
-			Warn("No localhost interface found")
-			// terminate <- syscall.SIGQUIT
-			return
 		}
+
+		// switch i.Name {
+		// case "lo", "lo0":
+		// 	Infof("found loopback %s", i.Name)
+		// 	break cont
+		// default:
+		// 	Warn("No localhost interface found")
+		// 	// terminate <- syscall.SIGQUIT
+		// 	return
+		// }
 	}
 
 	for _, server := range servers {
