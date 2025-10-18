@@ -88,19 +88,21 @@ func main() {
 
 func initMDNS() {
 	var err error
-	var i net.Interface
+	var iface net.Interface
 	ifaces, err := net.Interfaces()
 	if err != nil {
 		Errorf("net.Interfaces error %s", err.Error())
 		return
 	}
-cont:
-	for _, i = range ifaces {
-		Infof("iface %#v", i.Flags.String())
 
-		if i.Flags&(1<<uint(4)) != 0 {
-			Infof("found loopback flag %s", i.Name)
-			break cont
+	//cont:
+
+	for _, iface = range ifaces {
+		Infof("iface %#v", iface.Flags.String())
+
+		if iface.Flags&(1<<uint(4)) != 0 {
+			Infof("found loopback flag %s", iface.Name)
+			break //cont
 		}
 
 		// switch i.Name {
@@ -124,7 +126,7 @@ cont:
 			server.Hostname,
 			[]string{server.IPAddress},
 			[]string{server.Extra},
-			[]net.Interface{i},
+			[]net.Interface{iface},
 		)
 
 		if err != nil {
