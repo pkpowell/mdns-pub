@@ -101,6 +101,15 @@ func main() {
 func initMDNS() {
 	var err error
 
+	ifaces, err := net.Interfaces()
+	if err != nil {
+		Errorf("net.Interfaces: %s", err.Error())
+		return
+	}
+	for _, i := range ifaces {
+		Infof("iface %#v", i)
+	}
+
 	ifa, err := net.InterfaceByName("lo0")
 	if err != nil {
 		Errorf("net.InterfaceByName error %s", err)
