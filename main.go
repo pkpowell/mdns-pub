@@ -66,9 +66,12 @@ var servers = []*Server{
 	},
 }
 
+var (
+	terminate = make(chan os.Signal, 1)
+	update    = make(chan bool, 1)
+)
+
 func main() {
-	var terminate = make(chan os.Signal, 1)
-	var update = make(chan bool, 1)
 
 	signal.Notify(terminate,
 		syscall.SIGHUP,
@@ -76,9 +79,58 @@ func main() {
 		syscall.SIGTERM,
 		syscall.SIGQUIT,
 	)
+
 	initLogging()
 
 	initMDNS()
+
+}
+
+func initMDNS() {
+	var err error
+	var i net.Interface
+	ifaces, err := net.Interfaces()
+	if err != nil {
+		Errorf("net.Interfaces error %s", err.Error())
+		return
+	}
+cont:
+	for _, i = range ifaces {
+		Infof("iface %#v", i)
+
+		switch i.Name {
+		case "lo", "lo0":
+			Infof("found loopback %s", i.Name)
+			break cont
+		default:
+			Warn("No localhost interface found")
+			// terminate <- syscall.SIGQUIT
+			return
+		}
+	}
+
+	for _, server := range servers {
+
+		server.MDNSService, err = zeroconf.RegisterProxy(
+			server.Name,
+			server.Service,
+			"local.",
+			server.Port,
+			server.Hostname,
+			[]string{server.IPAddress},
+			[]string{server.Extra},
+			[]net.Interface{i},
+		)
+
+		if err != nil {
+			Errorf("zeroconf.Register error %s", err)
+
+			return
+		}
+
+		Infof("Publishing %s for %s", server.Service, server.Name)
+
+	}
 
 	for {
 		select {
@@ -96,45 +148,11 @@ func main() {
 			// do updates...
 		}
 	}
-}
 
-func initMDNS() {
-	var err error
-
-	ifaces, err := net.Interfaces()
-	if err != nil {
-		Errorf("net.Interfaces: %s", err.Error())
-		return
-	}
-	for _, i := range ifaces {
-		Infof("iface %#v", i)
-	}
-
-	ifa, err := net.InterfaceByName("lo0")
-	if err != nil {
-		Errorf("net.InterfaceByName error %s", err)
-		return
-	}
-
-	for _, server := range servers {
-
-		server.MDNSService, err = zeroconf.RegisterProxy(
-			server.Name,
-			server.Service,
-			"local.",
-			server.Port,
-			server.Hostname,
-			[]string{server.IPAddress},
-			[]string{server.Extra},
-			[]net.Interface{*ifa},
-		)
-
-		if err != nil {
-			Errorf("zeroconf.Register error %s", err)
-			return
-		}
-
-		Infof("Publishing %s for %s", server.Service, server.Name)
-	}
+	// ifa, err := net.InterfaceByName("lo0")
+	// if err != nil {
+	// 	Errorf("net.InterfaceByName error %s", err)
+	// 	return
+	// }
 
 }
