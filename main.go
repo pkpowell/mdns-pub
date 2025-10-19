@@ -10,86 +10,20 @@ import (
 )
 
 type App struct {
-	Servers  []*Server
+	// servers  []*Server
 	hostname string
+	config   *Config
 }
 
 type Server struct {
-	Name        string
-	Hostname    string
-	Service     string
-	IPAddress   string
-	Port        int
-	Extra       string
-	MDNSService *zeroconf.Server
+	Name        string           `json:"name,omitempty"`
+	Hostname    string           `json:"hostname,omitempty"`
+	Service     string           `json:"service,omitempty"`
+	IPAddress   string           `json:"ipAddress,omitempty"`
+	Port        int              `json:"port,omitempty"`
+	ExtraData   string           `json:"extraData,omitempty"`
+	mdnsService *zeroconf.Server `json:"-"`
 	// HCService   *mdns.Server
-}
-
-var servers = []*Server{
-	{
-		Name:      "WGS",
-		IPAddress: "192.168.44.60",
-		Port:      445,
-		Service:   "_smb._tcp.",
-		Hostname:  "wgs",
-		Extra:     "WGS - Boltshauser Architekten AG",
-	},
-	{
-		Name:      "Delta",
-		IPAddress: "192.168.44.65",
-		Port:      445,
-		Service:   "_smb._tcp.",
-		Hostname:  "delta",
-		Extra:     "Delta - Boltshauser Architekten AG",
-	},
-	{
-		Name:      "Bim Binz",
-		IPAddress: "192.168.24.22",
-		Port:      80,
-		Service:   "_workstation._tcp.",
-		Hostname:  "bim-binz",
-		Extra:     "Bim Binz - Boltshauser Architekten AG",
-	},
-	{
-		Name:      "adm",
-		IPAddress: "192.168.44.61",
-		Port:      445,
-		Service:   "_smb._tcp.",
-		Hostname:  "adm",
-		Extra:     "adm / updates - Boltshauser Architekten AG",
-	},
-	{
-		Name:      "adm",
-		IPAddress: "192.168.44.61",
-		Port:      1212,
-		Service:   "_ztui._tcp.",
-		Hostname:  "adm",
-		Extra:     "adm / ztui - Boltshauser Architekten AG",
-	},
-	{
-		Name:      "zt-binz",
-		IPAddress: "192.168.24.41",
-		Port:      1212,
-		Service:   "_ztui._tcp.",
-		Hostname:  "zt-binz",
-		Extra:     "adm / ztui - Boltshauser Architekten AG",
-	},
-	{
-		Name:      "adm",
-		IPAddress: "192.168.44.61",
-		Port:      22,
-		Service:   "_ssh._tcp.",
-		Hostname:  "adm",
-		Extra:     "adm / ssh - Boltshauser Architekten AG",
-	},
-	{
-		Name:      "adm",
-		IPAddress: "192.168.44.61",
-		Port:      5900,
-		Service:   "_rfb._tcp.",
-		Hostname:  "adm",
-		Extra:     "adm / screen sharing - Boltshauser Architekten AG",
-	},
 }
 
 var (
@@ -98,10 +32,10 @@ var (
 )
 
 func main() {
+	initLogging()
 	var err error
-	var a = &App{
-		Servers: servers,
-	}
+	var a = &App{}
+	a.initConfig()
 
 	signal.Notify(terminate,
 		syscall.SIGHUP,
@@ -109,8 +43,6 @@ func main() {
 		syscall.SIGTERM,
 		syscall.SIGQUIT,
 	)
-	initLogging()
-	initConfig()
 
 	a.hostname, err = os.Hostname()
 	if err != nil {
@@ -146,10 +78,10 @@ func (a *App) initMDNS() {
 			Info("Received terminate signal", signal.String())
 			Infof("cleaning up...")
 
-			for _, server := range servers {
-				if server.MDNSService != nil {
+			for _, server := range a.config.Servers {
+				if server.mdnsService != nil {
 					Infof("Canceling %s for %s", server.Service, server.Name)
-					server.MDNSService.Shutdown()
+					server.mdnsService.Shutdown()
 				}
 			}
 			os.Exit(0)
@@ -163,16 +95,16 @@ func (a *App) initMDNS() {
 func (a *App) publish(iface *net.Interface) {
 	var err error
 
-	for _, server := range a.Servers {
+	for _, server := range a.config.Servers {
 
-		server.MDNSService, err = zeroconf.RegisterProxy(
+		server.mdnsService, err = zeroconf.RegisterProxy(
 			server.Name,
 			server.Service,
 			"local.",
 			server.Port,
 			server.Hostname,
 			[]string{server.IPAddress},
-			[]string{server.Extra, "published by " + a.hostname},
+			[]string{server.ExtraData, "published by " + a.hostname},
 			[]net.Interface{*iface},
 		)
 

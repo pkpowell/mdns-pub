@@ -2,80 +2,82 @@ package main
 
 import (
 	"errors"
-	"io/fs"
 	"os"
 
 	"github.com/spf13/viper"
 )
 
 type HTTPServer struct {
-	Address string
-	Port    int
+	Address string `json:"address,omitempty"`
+	Port    int    `json:"port,omitempty"`
 }
+
 type Config struct {
-	Servers    []Server
-	HTTPServer HTTPServer
+	Servers    []*Server   `json:"servers,omitempty"`
+	HTTPServer *HTTPServer `json:"httpServer,omitempty"`
 }
 
-func initConfig() {
-	viper.SetConfigName("config")
-	viper.SetConfigType("yaml")
+func (a *App) initConfig() {
+	var err error
+	// var fileNotFoundError viper.ConfigFileNotFoundError
+	var fileExistsError viper.ConfigFileAlreadyExistsError
 
-	// Add search paths to find the file
-	viper.AddConfigPath("/etc/mdns-pub/")
+	var configPath = "/etc/mdns-pub/"
+	var configFileName = "config"
+	var configFilenType = "json"
 
-	var fileNotFoundError viper.ConfigFileNotFoundError
-	if err := viper.ReadInConfig(); err != nil {
-		if errors.As(err, &fileNotFoundError) {
-			Errorf("Config file not found %s", err)
-			err = viper.WriteConfig()
-			if err != nil {
-				Errorf("viper.WriteConfig error %s", err)
-				os.Exit(1)
-			}
-			// os.Exit(1)
-			// Indicates an explicitly set config file is not found (such as with
-			// using `viper.SetConfigFile`) or that no config file was found in
-			// any search path (such as when using `viper.AddConfigPath`)
-		} else {
-			Errorf("Config file error %s", err)
-			os.Exit(1)
-			// Config file was found but another error was produced
-		}
-	}
+	viper.SetConfigName(configFileName)
+	viper.SetConfigType(configFilenType)
 
-	// viper.
-
-	// if !exists(configFile) {
-	// 	Info("Writing default config to", configFile)
-	// 	err := viper.SafeWriteConfig()
-	// 	if err != nil {
-	// 		Error("viper.SafeWriteConfig error", err.Error())
-	// 		a.terminate <- syscall.SIGINT
-	// 	}
-	// }
+	viper.AddConfigPath(configPath)
 
 	viper.SetDefault("settings", &Config{
-		Servers: []Server{},
-		HTTPServer: HTTPServer{
+		Servers: []*Server{
+			{
+				Name:      "server-name",
+				Hostname:  "server-name.local",
+				Port:      1234,
+				Service:   "_workstation._tcp.",
+				IPAddress: "192.168.22.1",
+				ExtraData: "",
+			},
+		},
+		HTTPServer: &HTTPServer{
 			Address: "0.0.0.0",
 			Port:    1122,
 		},
 	})
 
-	err := viper.ReadInConfig()
+	Info("Writing default config to", viper.ConfigFileUsed())
+	err = viper.SafeWriteConfig()
+	if err != nil {
+		if !errors.As(err, &fileExistsError) {
+			Error("viper.SafeWriteConfig error", err.Error())
+			os.Exit(1)
+		}
+	}
+
+	err = viper.ReadInConfig()
 	if err != nil {
 		Errorf("fatal error config file: %s", err)
 		return
 	}
+
+	err = viper.Unmarshal(&a.config)
+	if err != nil {
+		Error("viper.Unmarshal", err.Error())
+		os.Exit(1)
+	}
+
+	Infof("Config loaded %v", a.config)
 }
 
-func exists(f string) bool {
-	Debug("checking path", f)
-	if _, err := os.Stat(f); errors.Is(err, fs.ErrNotExist) {
-		Errorf("File not found", f)
-		return false
-	}
-	// Debug("found", f)
-	return true
-}
+// func exists(f string) bool {
+// 	Debug("checking path", f)
+// 	if _, err := os.Stat(f); errors.Is(err, fs.ErrNotExist) {
+// 		Errorf("File not found %s", f)
+// 		return false
+// 	}
+// 	// Debug("found", f)
+// 	return true
+// }
