@@ -99,6 +99,7 @@ func initMDNS() {
 
 	for _, iface = range ifaces {
 		Infof("iface %#v", iface)
+		Infof("iface flags %d", iface.Flags&net.FlagLoopback)
 
 		isLoopback := iface.Flags&net.FlagLoopback != 0
 
