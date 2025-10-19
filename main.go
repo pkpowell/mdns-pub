@@ -10,7 +10,8 @@ import (
 )
 
 type App struct {
-	Servers []Server
+	Servers  []*Server
+	hostname string
 }
 
 type Server struct {
@@ -72,6 +73,10 @@ var (
 )
 
 func main() {
+	var err error
+	var a = &App{
+		Servers: servers,
+	}
 
 	signal.Notify(terminate,
 		syscall.SIGHUP,
@@ -81,80 +86,42 @@ func main() {
 	)
 	initLogging()
 
-	initMDNS()
+	a.hostname, err = os.Hostname()
+	if err != nil {
+		Infof("os Hostname error %s", err)
+		return
+	}
+
+	a.initMDNS()
 
 }
 
-func initMDNS() {
+func (a *App) initMDNS() {
 	var err error
 	var iface net.Interface
+
 	ifaces, err := net.Interfaces()
 	if err != nil {
 		Errorf("net.Interfaces error %s", err.Error())
 		return
 	}
 
-	hostname, err := os.Hostname()
-	if err != nil {
-		Infof("os Hostname error %s", err)
-		return
-	}
-
-	//cont:
-
 	for _, iface = range ifaces {
-		Infof("iface %#v", iface)
-		Infof("iface flags %d", iface.Flags&net.FlagLoopback)
+		// Infof("iface %#v", iface)
+		// Infof("iface flags %d", iface.Flags&net.FlagLoopback)
 
-		isLoopback := iface.Flags&net.FlagLoopback != 0
+		// isLoopback := iface.Flags&net.FlagLoopback != 0
 
-		if isLoopback {
-			// if iface.Index == 1 {
+		if iface.Flags&net.FlagLoopback != 0 {
+			// Infof("iface %#v", iface)
 			addrs, err := iface.Addrs()
 			if err != nil {
 				Errorf("iface.Addrs %s", err)
 				return
 			}
-			Infof("found loopback interface %s", addrs)
-			break //cont
+			Infof("found loopback interface %s %s", iface.Name, addrs)
+			go a.publish(iface)
 		}
-		// if iface.Flags&(1<<uint(4)) != 0 {
-		// 	Infof("found loopback flag %s", iface.Name)
-		// 	break //cont
-		// }
-
-		// switch i.Name {
-		// case "lo", "lo0":
-		// 	Infof("found loopback %s", i.Name)
-		// 	break cont
-		// default:
-		// 	Warn("No localhost interface found")
-		// 	// terminate <- syscall.SIGQUIT
-		// 	return
-		// }
-	}
-
-	for _, server := range servers {
-
-		server.MDNSService, err = zeroconf.RegisterProxy(
-			server.Name,
-			server.Service,
-			"local.",
-			server.Port,
-			server.Hostname,
-			[]string{server.IPAddress},
-			[]string{server.Extra, "published by " + hostname},
-			[]net.Interface{iface},
-		)
-
-		if err != nil {
-			Errorf("zeroconf.Register error %s", err)
-
-			return
-		}
-
-		Infof("Publishing %s for %s", server.Service, server.Name)
-
 	}
 
 	for {
@@ -173,11 +140,30 @@ func initMDNS() {
 			// do updates...
 		}
 	}
+}
 
-	// ifa, err := net.InterfaceByName("lo0")
-	// if err != nil {
-	// 	Errorf("net.InterfaceByName error %s", err)
-	// 	return
-	// }
+func (a *App) publish(iface net.Interface) {
+	var err error
 
+	for _, server := range a.Servers {
+		server.MDNSService, err = zeroconf.RegisterProxy(
+			server.Name,
+			server.Service,
+			"local.",
+			server.Port,
+			server.Hostname,
+			[]string{server.IPAddress},
+			[]string{server.Extra, "published by " + a.hostname},
+			[]net.Interface{iface},
+		)
+
+		if err != nil {
+			Errorf("zeroconf.Register error %s", err)
+
+			return
+		}
+
+		Infof("Publishing %s for %s", server.Service, server.Name)
+
+	}
 }
