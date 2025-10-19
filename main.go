@@ -12,7 +12,7 @@ import (
 type App struct {
 	// servers  []*Server
 	hostname string
-	config   *Config
+	Config   *Config `json:"config,omitempty"`
 }
 
 type Server struct {
@@ -78,7 +78,7 @@ func (a *App) initMDNS() {
 			Info("Received terminate signal", signal.String())
 			Infof("cleaning up...")
 
-			for _, server := range a.config.Servers {
+			for _, server := range a.Config.Servers {
 				if server.mdnsService != nil {
 					Infof("Canceling %s for %s", server.Service, server.Name)
 					server.mdnsService.Shutdown()
@@ -95,7 +95,7 @@ func (a *App) initMDNS() {
 func (a *App) publish(iface *net.Interface) {
 	var err error
 
-	for _, server := range a.config.Servers {
+	for _, server := range a.Config.Servers {
 
 		server.mdnsService, err = zeroconf.RegisterProxy(
 			server.Name,
