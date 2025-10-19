@@ -22,6 +22,7 @@ type Server struct {
 	Port        int
 	Extra       string
 	MDNSService *zeroconf.Server
+	// HCService   *mdns.Server
 }
 
 var servers = []*Server{
@@ -107,20 +108,10 @@ func (a *App) initMDNS() {
 	}
 
 	for _, iface = range ifaces {
-		// Infof("iface %#v", iface)
-		// Infof("iface flags %d", iface.Flags&net.FlagLoopback)
-
-		// isLoopback := iface.Flags&net.FlagLoopback != 0
-
 		if iface.Flags&net.FlagLoopback != 0 {
-			// Infof("iface %#v", iface)
-			addrs, err := iface.Addrs()
-			if err != nil {
-				Errorf("iface.Addrs %s", err)
-				return
-			}
-			Infof("found loopback interface %s %s", iface.Name, addrs)
-			go a.publish(iface)
+			Infof("found loopback interface %s", iface.Name)
+			go a.publish(&iface)
+			break
 		}
 	}
 
@@ -131,8 +122,10 @@ func (a *App) initMDNS() {
 			Infof("cleaning up...")
 
 			for _, server := range servers {
-				Infof("Canceling %s for %s", server.Service, server.Name)
-				server.MDNSService.Shutdown()
+				if server.MDNSService != nil {
+					Infof("Canceling %s for %s", server.Service, server.Name)
+					server.MDNSService.Shutdown()
+				}
 			}
 			os.Exit(0)
 
@@ -142,10 +135,11 @@ func (a *App) initMDNS() {
 	}
 }
 
-func (a *App) publish(iface net.Interface) {
+func (a *App) publish(iface *net.Interface) {
 	var err error
 
 	for _, server := range a.Servers {
+
 		server.MDNSService, err = zeroconf.RegisterProxy(
 			server.Name,
 			server.Service,
@@ -154,16 +148,14 @@ func (a *App) publish(iface net.Interface) {
 			server.Hostname,
 			[]string{server.IPAddress},
 			[]string{server.Extra, "published by " + a.hostname},
-			[]net.Interface{iface},
+			[]net.Interface{*iface},
 		)
 
 		if err != nil {
 			Errorf("zeroconf.Register error %s", err)
-
 			return
 		}
 
-		Infof("Publishing %s for %s", server.Service, server.Name)
-
+		Infof("Publishing %s for %s on %s", server.Service, server.Name, iface.Name)
 	}
 }
