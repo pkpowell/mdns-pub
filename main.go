@@ -100,7 +100,10 @@ func initMDNS() {
 	for _, iface = range ifaces {
 		Infof("iface %#v", iface)
 
-		if iface.Index == 1 {
+		isLoopback := iface.Flags&net.FlagLoopback != 0
+
+		if isLoopback {
+			// if iface.Index == 1 {
 			addrs, err := iface.Addrs()
 			if err != nil {
 				Errorf("iface.Addrs %s", err)
