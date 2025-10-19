@@ -101,7 +101,12 @@ func initMDNS() {
 		Infof("iface %#v", iface)
 
 		if iface.Index == 1 {
-			Infof("found loopback flag %s", iface.Name)
+			addrs, err := iface.Addrs()
+			if err != nil {
+				Errorf("iface.Addrs %s", err)
+				return
+			}
+			Infof("found loopback interface %s", addrs)
 			break //cont
 		}
 		// if iface.Flags&(1<<uint(4)) != 0 {
