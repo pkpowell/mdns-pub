@@ -43,12 +43,36 @@ var servers = []*Server{
 		Extra:     "Delta - Boltshauser Architekten AG",
 	},
 	{
+		Name:      "Bim Binz",
+		IPAddress: "192.168.24.22",
+		Port:      80,
+		Service:   "_workstation._tcp.",
+		Hostname:  "bim-binz",
+		Extra:     "Bim Binz - Boltshauser Architekten AG",
+	},
+	{
 		Name:      "adm",
 		IPAddress: "192.168.44.61",
 		Port:      445,
 		Service:   "_smb._tcp.",
 		Hostname:  "adm",
 		Extra:     "adm / updates - Boltshauser Architekten AG",
+	},
+	{
+		Name:      "adm",
+		IPAddress: "192.168.44.61",
+		Port:      1212,
+		Service:   "_ztui._tcp.",
+		Hostname:  "adm",
+		Extra:     "adm / ztui - Boltshauser Architekten AG",
+	},
+	{
+		Name:      "zt-binz",
+		IPAddress: "192.168.24.41",
+		Port:      1212,
+		Service:   "_ztui._tcp.",
+		Hostname:  "zt-binz",
+		Extra:     "adm / ztui - Boltshauser Architekten AG",
 	},
 	{
 		Name:      "adm",
@@ -86,6 +110,7 @@ func main() {
 		syscall.SIGQUIT,
 	)
 	initLogging()
+	initConfig()
 
 	a.hostname, err = os.Hostname()
 	if err != nil {
