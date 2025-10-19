@@ -79,7 +79,6 @@ func main() {
 		syscall.SIGTERM,
 		syscall.SIGQUIT,
 	)
-
 	initLogging()
 
 	initMDNS()
@@ -92,6 +91,12 @@ func initMDNS() {
 	ifaces, err := net.Interfaces()
 	if err != nil {
 		Errorf("net.Interfaces error %s", err.Error())
+		return
+	}
+
+	hostname, err := os.Hostname()
+	if err != nil {
+		Infof("os Hostname error %s", err)
 		return
 	}
 
@@ -138,7 +143,7 @@ func initMDNS() {
 			server.Port,
 			server.Hostname,
 			[]string{server.IPAddress},
-			[]string{server.Extra},
+			[]string{server.Extra, "published by " + hostname},
 			[]net.Interface{iface},
 		)
 
