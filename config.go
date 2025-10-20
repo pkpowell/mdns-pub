@@ -35,22 +35,22 @@ func (a *App) initConfig() {
 
 	viper.AddConfigPath(configPath)
 
-	// viper.Set("config", &Config{
-	// 	Servers: []*Server{
-	// 		{
-	// 			Name:      "server-name",
-	// 			Hostname:  "server-name.local",
-	// 			Port:      1234,
-	// 			Service:   "_workstation._tcp.",
-	// 			IPAddress: "192.168.22.1",
-	// 			ExtraData: "",
-	// 		},
-	// 	},
-	// 	HTTPServer: HTTPServer{
-	// 		Address: "0.0.0.0",
-	// 		Port:    1122,
-	// 	},
-	// })
+	viper.Set("config", &Config{
+		Servers: []*Server{
+			{
+				Name:      "server-name",
+				Hostname:  "server-name.local",
+				Port:      1234,
+				Service:   "_workstation._tcp.",
+				IPAddress: "192.168.22.1",
+				ExtraData: "",
+			},
+		},
+		HTTPServer: HTTPServer{
+			Address: "0.0.0.0",
+			Port:    1122,
+		},
+	})
 
 	Info("Writing default config to", viper.ConfigFileUsed())
 	err = viper.SafeWriteConfig()
