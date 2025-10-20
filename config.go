@@ -12,7 +12,7 @@ import (
 var defaultConf = &Config{
 	Servers: []*Server{
 		{
-			Name:      "example server",
+			Name:      "Example Server",
 			Hostname:  "example-hostname.local",
 			Port:      1234,
 			Service:   "_workstation._tcp.",
