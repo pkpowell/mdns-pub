@@ -12,12 +12,12 @@ import (
 var defaultConf = &Config{
 	Servers: []*Server{
 		{
-			Name:      "server-name",
-			Hostname:  "server-name.local",
+			Name:      "example server",
+			Hostname:  "example-hostname.local",
 			Port:      1234,
 			Service:   "_workstation._tcp.",
 			IPAddress: "192.168.22.1",
-			ExtraData: "",
+			ExtraData: "Example Server",
 		},
 	},
 	HTTPServer: HTTPServer{
