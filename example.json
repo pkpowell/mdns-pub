@@ -1,0 +1,90 @@
+{
+	"config": {
+		"servers": [
+			{
+				"name":      "WGS",
+				"ipAddress": "192.168.44.60",
+				"port":      445,
+				"service":   "_smb._tcp.",
+				"hostname":  "wgs",
+				"extraData": "WGS - Boltshauser Architekten AG"
+			},
+			{
+				"name":      "Delta",
+				"ipAddress": "192.168.44.65",
+				"port":      445,
+				"service":   "_smb._tcp.",
+				"hostname":  "delta",
+				"extraData": "Delta - Boltshauser Architekten AG"
+			},
+			{
+				"name":      "Delta",
+				"ipAddress": "192.168.44.65",
+				"port":      5900,
+				"service":   "_rfb._tcp.",
+				"hostname":  "delta",
+				"extraData": "Delta / screen share - Boltshauser Architekten AG"
+			},
+			{
+				"name":      "Bim Binz",
+				"ipAddress": "192.168.24.22",
+				"port":      80,
+				"service":   "_workstation._tcp.",
+				"hostname":  "bim-binz",
+				"extraData": "Bim Binz - Boltshauser Architekten AG"
+			},
+			{
+				"name":      "Bim Binz",
+				"ipAddress": "192.168.24.22",
+				"port":      5900,
+				"service":   "_rfb._tcp.",
+				"hostname":  "bim-binz",
+				"extraData": "Bim Binz / screen share - Boltshauser Architekten AG"
+			},
+			{
+				"name":      "adm",
+				"ipAddress": "192.168.44.61",
+				"port":      445,
+				"service":   "_smb._tcp.",
+				"hostname":  "adm",
+				"extraData": "adm / updates - Boltshauser Architekten AG"
+			},
+			{
+				"name":      "adm",
+				"ipAddress": "192.168.44.61",
+				"port":      1212,
+				"service":   "_ztui._tcp.",
+				"hostname":  "adm",
+				"extraData": "adm / ztui - Boltshauser Architekten AG"
+			},
+			{
+				"name":      "zt-binz",
+				"ipAddress": "192.168.24.41",
+				"port":      1212,
+				"service":   "_ztui._tcp.",
+				"hostname":  "zt-binz",
+				"extraData": "adm / ztui - Boltshauser Architekten AG"
+			},
+			{
+				"name":      "adm",
+				"ipAddress": "192.168.44.61",
+				"port":      22,
+				"service":   "_ssh._tcp.",
+				"hostname":  "adm",
+				"extraData": "adm / ssh - Boltshauser Architekten AG"
+			},
+			{
+				"name":      "adm",
+				"ipAddress": "192.168.44.61",
+				"port":      5900,
+				"service":   "_rfb._tcp.",
+				"hostname":  "adm",
+				"extraData": "adm / screen sharing - Boltshauser Architekten AG"
+			}
+		],
+		"httpServer": {
+			"address": "0.0.0.0",
+			"port": 1122
+		}
+	}
+}

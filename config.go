@@ -2,10 +2,29 @@ package main
 
 import (
 	"errors"
+	"io/fs"
 	"os"
+	"path"
 
 	"github.com/spf13/viper"
 )
+
+var defaultConf = &Config{
+	Servers: []*Server{
+		{
+			Name:      "server-name",
+			Hostname:  "server-name.local",
+			Port:      1234,
+			Service:   "_workstation._tcp.",
+			IPAddress: "192.168.22.1",
+			ExtraData: "",
+		},
+	},
+	HTTPServer: HTTPServer{
+		Address: "0.0.0.0",
+		Port:    1122,
+	},
+}
 
 type Conf struct {
 	Config *Config `json:"config"`
@@ -28,36 +47,23 @@ func (a *App) initConfig() {
 
 	var configPath = "/etc/mdns-pub/"
 	var configFileName = "config"
-	var configFilenType = "json"
+	var configFileType = "json"
+	var configFile = path.Join(configPath, configFileName+"."+configFileType)
 
 	viper.SetConfigName(configFileName)
-	viper.SetConfigType(configFilenType)
+	viper.SetConfigType(configFileType)
 
 	viper.AddConfigPath(configPath)
 
-	viper.Set("config", &Config{
-		Servers: []*Server{
-			{
-				Name:      "server-name",
-				Hostname:  "server-name.local",
-				Port:      1234,
-				Service:   "_workstation._tcp.",
-				IPAddress: "192.168.22.1",
-				ExtraData: "",
-			},
-		},
-		HTTPServer: HTTPServer{
-			Address: "0.0.0.0",
-			Port:    1122,
-		},
-	})
-
-	Info("Writing default config to", viper.ConfigFileUsed())
-	err = viper.SafeWriteConfig()
-	if err != nil {
-		if !errors.As(err, &fileExistsError) {
-			Error("viper.SafeWriteConfig error", err.Error())
-			os.Exit(1)
+	if !exists(configFile) {
+		viper.Set("config", defaultConf)
+		Info("Writing default config to", configFile)
+		err = viper.SafeWriteConfig()
+		if err != nil {
+			if !errors.As(err, &fileExistsError) {
+				Error("viper.SafeWriteConfig error", err.Error())
+				os.Exit(1)
+			}
 		}
 	}
 
@@ -79,12 +85,12 @@ func (a *App) initConfig() {
 	a.Config = conf.Config
 }
 
-// func exists(f string) bool {
-// 	Debug("checking path", f)
-// 	if _, err := os.Stat(f); errors.Is(err, fs.ErrNotExist) {
-// 		Errorf("File not found %s", f)
-// 		return false
-// 	}
-// 	// Debug("found", f)
-// 	return true
-// }
+func exists(f string) bool {
+	Warnf("checking path %s", f)
+	if _, err := os.Stat(f); errors.Is(err, fs.ErrNotExist) {
+		Errorf("File not found %s", f)
+		return false
+	}
+	// Debug("found", f)
+	return true
+}
