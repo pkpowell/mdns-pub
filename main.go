@@ -95,6 +95,11 @@ func (a *App) initMDNS() {
 func (a *App) publish(iface *net.Interface) {
 	var err error
 
+	if len(a.Config.Servers) == 0 {
+		Warnf("no servers configured")
+		return
+	}
+
 	for _, server := range a.Config.Servers {
 
 		server.mdnsService, err = zeroconf.RegisterProxy(
