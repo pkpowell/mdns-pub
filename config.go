@@ -2,7 +2,6 @@ package main
 
 import (
 	"errors"
-	"io/fs"
 	"os"
 	"path"
 
@@ -26,23 +25,8 @@ var defaultConf = &Config{
 	},
 }
 
-type Conf struct {
-	Config *Config `json:"config"`
-}
-
-type HTTPServer struct {
-	Address string `json:"address,omitempty"`
-	Port    int    `json:"port,omitempty"`
-}
-
-type Config struct {
-	Servers    []*Server  `json:"servers,omitempty"`
-	HTTPServer HTTPServer `json:"httpServer,omitempty"`
-}
-
 func (a *App) initConfig() {
 	var err error
-	// var fileNotFoundError viper.ConfigFileNotFoundError
 	var fileExistsError viper.ConfigFileAlreadyExistsError
 
 	var configPath = "/etc/mdns-pub/"
@@ -83,14 +67,4 @@ func (a *App) initConfig() {
 
 	Infof("Config loaded %v", conf)
 	a.Config = conf.Config
-}
-
-func exists(f string) bool {
-	Warnf("checking path %s", f)
-	if _, err := os.Stat(f); errors.Is(err, fs.ErrNotExist) {
-		Errorf("File not found %s", f)
-		return false
-	}
-	// Debug("found", f)
-	return true
 }
