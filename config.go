@@ -34,17 +34,17 @@ func (a *App) initConfig() {
 		Errorf("os.UserConfigDir error %s", err)
 		os.Exit(1)
 	}
-	Infof("os.UserConfigDir", configDir)
+	Infof("os.UserConfigDir %s", configDir)
 
-	// var configPath = "/etc/mdns-pub/"
+	var configPath = path.Join(configDir, "mdns-pub")
 	var configFileName = "config"
 	var configFileType = "json"
-	var configFile = path.Join(configDir, configFileName+"."+configFileType)
+	var configFile = path.Join(configPath, configFileName+"."+configFileType)
 
-	if !exists(configDir) {
-		err = os.MkdirAll(configDir, os.ModeDir)
+	if !exists(configPath) {
+		err = os.MkdirAll(configPath, os.ModePerm)
 		if err != nil {
-			Errorf("os.MkdirAll error %f", err)
+			Errorf("os.MkdirAll error %s", err)
 			os.Exit(1)
 		}
 	}
@@ -52,7 +52,7 @@ func (a *App) initConfig() {
 	viper.SetConfigName(configFileName)
 	viper.SetConfigType(configFileType)
 
-	viper.AddConfigPath(configDir)
+	viper.AddConfigPath(configPath)
 
 	if !exists(configFile) {
 		viper.Set("config", defaultConf)
