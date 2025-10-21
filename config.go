@@ -29,10 +29,25 @@ func (a *App) initConfig() {
 	var err error
 	var fileExistsError viper.ConfigFileAlreadyExistsError
 
+	configDir, err := os.UserConfigDir()
+	if err != nil {
+		Errorf("os.UserConfigDir error %s", err)
+		os.Exit(1)
+	}
+	Infof("os.UserConfigDir", configDir)
+
 	var configPath = "/etc/mdns-pub/"
 	var configFileName = "config"
 	var configFileType = "json"
 	var configFile = path.Join(configPath, configFileName+"."+configFileType)
+
+	if !exists(configPath) {
+		err = os.MkdirAll(configPath, os.ModeDir)
+		if err != nil {
+			Errorf("os.MkdirAll error %f", err)
+			os.Exit(1)
+		}
+	}
 
 	viper.SetConfigName(configFileName)
 	viper.SetConfigType(configFileType)
